@@ -1,0 +1,15 @@
+project_name = "poc-serverless-arch-3t-tf"
+apigw = "poc-serverless-http-api"
+function_name = "poc-serverless-lambda-arch"
+lambda_exec_role = "poc-serverless-lambda-role"
+lambda_exec_policy = "poc-serverless-lambda-policy"
+cognito_jwt = "poc-serverless-jwt-token"
+dynamo_table = "poc-serverless-db-items"
+region          = "ap-south-1"
+
+tags = {
+  Project     = "poc-serverless-arch"
+  Owner       = "teh"
+  CostCenter  = "cc-1239"
+  ManagedBy   = "terraform"
+}
