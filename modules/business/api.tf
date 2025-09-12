@@ -2,6 +2,12 @@
 resource "aws_apigatewayv2_api" "http_api" {
   name          = var.apigw
   protocol_type = "HTTP"
+  cors_configuration {
+  allow_origins = ["http://${var.website_endpoint}"]
+  allow_methods = ["GET", "POST", "OPTIONS"]
+  allow_headers = ["authorization", "content-type"]
+}
+
 }
 
 resource "aws_apigatewayv2_integration" "lambda_integration" {
@@ -17,12 +23,15 @@ resource "aws_apigatewayv2_route" "items_get" {
   api_id    = aws_apigatewayv2_api.http_api.id
   route_key = "GET /items"
   target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
+  authorization_type = "NONE"
 }
 
 resource "aws_apigatewayv2_route" "items_post" {
   api_id    = aws_apigatewayv2_api.http_api.id
   route_key = "POST /items"
   target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
+  authorizer_id = aws_apigatewayv2_authorizer.cognito_jwt.id
+  authorization_type = "JWT"
 }
 
 resource "aws_apigatewayv2_stage" "default" {

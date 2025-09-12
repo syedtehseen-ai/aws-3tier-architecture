@@ -3,8 +3,8 @@ resource "aws_lambda_function" "api_handler" {
   filename         = var.lambda_package
   function_name    = var.function_name
   role             = aws_iam_role.lambda_role.arn
-  handler          = "index.handler"
-  runtime          = "nodejs18.x"
+  handler          = "index.lambda_handler"
+  runtime          = "python3.10"
   source_code_hash = filebase64sha256(var.lambda_package)
   environment {
     variables = {

@@ -21,15 +21,19 @@ def lambda_handler(event, context):
             }
 
         elif method == "POST":
-            body = json.loads(event.get("body", "{}"))
-            item_id = body.get("id", str(int(context.aws_request_id[:8], 16)))
-            body["id"] = item_id
-            table.put_item(Item=body)
-            return {
-                "statusCode": 201,
-                "body": json.dumps({"id": item_id})
-            }
+            # Extract user info from JWT claims
+            claims = event.get("requestContext", {}).get("authorizer", {}).get("jwt", {}).get("claims", {})
+            user = claims.get("cognito:username", "anonymous")
 
+            body = json.loads(event.get("body", "{}"))
+            item = {
+                "id": body.get("id", context.aws_request_id[:8]),
+                "task": body.get("task", "Untitled"),
+                "user": user
+            }
+            table.put_item(Item=item)
+            return {"statusCode": 201, "body": json.dumps(item)}
+        
         else:
             return {
                 "statusCode": 405,

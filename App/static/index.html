@@ -1,8 +1,176 @@
-<!doctype html>
-<html>
-<head><meta charset="utf-8"><title>Demo Serverless App</title></head>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Cognito Login Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: 2rem auto;
+    }
+
+    input,
+    button {
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      width: 100%;
+    }
+
+    pre {
+      background: #f4f4f4;
+      padding: 1rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .masked {
+      color: gray;
+    }
+  </style>
+</head>
+
 <body>
-  <h1>Serverless 3-tier poc on AWS</h1>
-  <p>Open the API URL (see Terraform output) to call /items (GET)</p>
+  <h2>Serverless 3-Tier App Login</h2>
+
+  <!-- Login form -->
+  <div id="login-form">
+    <input type="text" id="username" placeholder="Email or Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="login()">Login</button>
+  </div>
+
+  <!-- Feedback -->
+  <div id="status"></div>
+
+  <!-- Token storage -->
+  <h3>Stored Token</h3>
+  <pre id="token" class="masked">[Not logged in]</pre>
+  <!-- Protected API call -->
+  <h3>Call Get Items API</h3>
+  <button onclick="callApi()">Call /items</button>
+  <pre id="api-result">[No call yet]</pre>
+
+  <script>
+    // ⚡ Configuration: replace these with your Cognito values
+    const REGION = "ap-south-1"; // e.g. ap-south-1
+    const CLIENT_ID = "697tm0dpago0r6ikbci9dcsgmq"; // from Terraform output
+    const USER_POOL_ID = "ap-south-1_kn7asUm3r"; // e.g. ap-south-1_XXXXXXX
+    const API_ENDPOINT =
+      "https://x4alpvr2p0.execute-api.ap-south-1.amazonaws.com/items";
+
+    // Cognito token endpoint (direct call)
+    const COGNITO_URL = `https://cognito-idp.${REGION}.amazonaws.com/`;
+
+    // Store JWT token in browser (we'll use sessionStorage for demo)
+    // sessionStorage = clears on tab close, safer for short sessions
+    // localStorage   = persists across tabs/sessions, but higher risk if XSS exists
+    function saveToken(token) {
+      sessionStorage.setItem("jwt", token);
+    }
+
+    function getToken() {
+      return sessionStorage.getItem("jwt");
+    }
+
+    async function login() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      document.getElementById("status").innerText = "Logging in...";
+
+      try {
+        const resp = await fetch(COGNITO_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-amz-json-1.1",
+            "X-Amz-Target": "AWSCognitoIdentityProviderService.InitiateAuth",
+          },
+          body: JSON.stringify({
+            AuthFlow: "USER_PASSWORD_AUTH",
+            ClientId: CLIENT_ID,
+            AuthParameters: {
+              USERNAME: username,
+              PASSWORD: password,
+            },
+          }),
+        });
+
+        const data = await resp.json();
+        if (data.AuthenticationResult) {
+          const token = data.AuthenticationResult.IdToken; // or AccessToken
+          saveToken(token);
+          document.getElementById("status").innerText =
+            "✅ Login successful!";
+          document.getElementById("token").innerText =
+            token.substring(0, 30) + "... (masked)";
+        } else {
+          document.getElementById("status").innerText =
+            "❌ Login failed: " + JSON.stringify(data);
+        }
+      } catch (err) {
+        document.getElementById("status").innerText = "❌ Error: " + err;
+      }
+    }
+
+    async function callApi() {
+
+      document.getElementById("api-result").innerText = "Fetching Items without logging in...";
+
+      try {
+        const resp = await fetch(API_ENDPOINT, {
+          method: "GET", // No Authorization header here
+        });
+        const result = await resp.json();
+        document.getElementById("api-result").innerText = JSON.stringify(
+          result,
+          null,
+          2
+        );
+      } catch (err) {
+        document.getElementById("api-result").innerText =
+          "❌ Error calling API: " + err;
+      }
+    }
+  </script>
+  <h3>Add Task</h3>
+  <input type="text" id="task" placeholder="Enter task" />
+  <button onclick="addTask()">Submit Task</button>
+  <pre id="post-result">[No task submitted]</pre>
+
+  <script>
+    async function addTask() {
+      const token = getToken();
+      const task = document.getElementById("task").value;
+
+      if (!token) {
+        document.getElementById("post-result").innerText =
+          "⚠️ Please login first.";
+        return;
+      }
+
+      try {
+        const resp = await fetch(API_ENDPOINT, {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + token,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ task }),
+        });
+
+        const result = await resp.json();
+        document.getElementById("post-result").innerText = JSON.stringify(
+          result,
+          null,
+          2
+        );
+      } catch (err) {
+        document.getElementById("post-result").innerText = "❌ Error: " + err;
+      }
+    }
+  </script>
 </body>
+
 </html>

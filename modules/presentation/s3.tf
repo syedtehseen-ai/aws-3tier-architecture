@@ -16,7 +16,7 @@ resource "aws_s3_bucket" "site" {
 resource "aws_s3_object" "object" {
   bucket = aws_s3_bucket.site.id
   key    = "index.html"
-  source = var.static_indexpage   # you can create a tiny index file
+  source = var.static_indexpage   # you can create a tiny index files
   content_type = "text/html"
 }
 

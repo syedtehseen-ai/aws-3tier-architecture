@@ -21,6 +21,7 @@ module "business" {
   function_name = var.function_name
   lambda_exec_role = var.lambda_exec_role
   lambda_exec_policy = var.lambda_exec_policy
+  website_endpoint = module.presentation.website_endpoint
   dynamo_table = var.dynamo_table
   dynamo_table_arn = module.data.dynamo_table_arn
   cognito_jwt = var.cognito_jwt
