@@ -6,12 +6,12 @@ It showcases how to build an application that mixes **public routes** (open acce
 
 ---
 
-## 🎥 Demos
+## 🎥 Application flow - API calls open (no login) vs. API calls with Cognito JWT token.
 
-| Scenario                                         | Demo GIF                                                |
+| Scenario                                         | App Flow GIF                                            |
 | ------------------------------------------------ | --------------------------------------------------      |
-| App flow with and without Cognito authentication | ![Demo with Cognito ](./gifs/WithCognito.gif)           |
-|                                                  | ![Demo with Auth](./gifs/WithoutCognito.gif)            |
+| App flow with Cognito authentication             | ![Demo with Cognito ](./gifs/WithCognito.gif)           |
+| App flow without Cognito authentication          | ![Demo with Auth](./gifs/WithoutCognito.gif)            |
 | Creating a Cognito user for authentication       | ![Cognito User Creation](./gifs/CognitoUserCreated.gif) |
 
 ✅ **Highlights in the demos:**
